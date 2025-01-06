@@ -3,6 +3,7 @@ package db
 import (
 	error2 "Market/error"
 	"database/sql"
+	_ "github.com/lib/pq"
 )
 
 func Connect(DatabaseURL string) (*sql.DB, error) {

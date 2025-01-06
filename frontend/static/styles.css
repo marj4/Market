@@ -1,0 +1,92 @@
+/* Общие стили */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(to bottom, #4facfe, #00f2fe);
+    color: #333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Контейнер */
+.container {
+    text-align: center;
+    max-width: 1200px;
+    padding: 20px;
+}
+
+/* Заголовок */
+h1 {
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+/* Сетка товаров */
+.products {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+/* Карточка товара */
+.card {
+    background-color: #fff;
+    border-radius: 15px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    max-width: 300px;
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Анимация при наведении */
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Изображение товара */
+.product-image {
+    max-width: 100%;
+    border-radius: 10px;
+    margin-bottom: 15px;
+}
+
+/* Название товара */
+.product-title {
+    font-size: 1.5em;
+    margin: 10px 0;
+}
+
+/* Цена товара */
+.product-price {
+    font-size: 1.2em;
+    color: #4facfe;
+    font-weight: bold;
+}
+
+/* Описание товара */
+.product-description {
+    color: #666;
+    font-size: 0.9em;
+    margin-bottom: 15px;
+}
+
+/* Кнопка добавления в корзину */
+.cart-button {
+    background-color: #4facfe;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.cart-button:hover {
+    background-color: #00aaff;
+}
