@@ -6,14 +6,26 @@ import (
 	"database/sql"
 )
 
-func GetAllProduct(DB *sql.DB, id int) (backend.Products, error) {
-	query := `SELECT name,description,picture,price from products where id=$1`
-	rows := DB.QueryRow(query, id)
+func GetAllProduct(DB *sql.DB) ([]backend.Products, error) {
+	query := `SELECT name,description,picture,price from products`
 
-	var products backend.Products
+	rows, err := DB.Query(query)
+	if err != nil {
+		return nil, error2.Wrap("Can`t receive products from db", err)
+	}
 
-	if err := rows.Scan(&products.Name, &products.Description, &products.Picture_URL, &products.Price); err != nil {
-		return backend.Products{}, error2.Wrap("Can`t scan data from db", err)
+	defer rows.Close()
+
+	var products []backend.Products
+
+	for rows.Next() {
+		var product backend.Products
+
+		if err := rows.Scan(&product.Name, &product.Description, &product.Picture_URL, &product.Price); err != nil {
+			return nil, error2.Wrap("Can`t scan products from db", err)
+		}
+
+		products = append(products, product)
 	}
 
 	return products, nil
