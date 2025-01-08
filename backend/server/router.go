@@ -25,8 +25,8 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 
 	router.GET("/ping", PingPage)
 
-	router.GET("/shop.ru", func(c *gin.Context) {
-		data, err := db.GetAllProduct(DB) // Здесь ID = 1, ты можешь менять его динамически
+	router.GET("/", func(c *gin.Context) {
+		data, err := db.GetAllProduct(DB)
 
 		if err != nil {
 			c.JSON(500, gin.H{
@@ -35,7 +35,6 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			return
 		}
 
-		// Передаём HTML с динамическими данными
 		c.HTML(http.StatusOK, "index.html", gin.H{
 			"Products": data,
 		})

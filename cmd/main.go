@@ -26,10 +26,6 @@ func main() {
 	srv := server.StartServer(DB)
 	if err := srv.Router.Run(":8080"); err != nil { log.Fatal(err) }
 	fmt.Println("Server is started successfully")
-	
-
-
-
 
 
 }
