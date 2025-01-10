@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background: linear-gradient(180deg, #4facfe, #00f2fe);
+            background: linear-gradient(180deg, #4facfe, #007ffe);
             min-height: 100vh;
         }
 
@@ -35,23 +35,19 @@
             margin: 0;
         }
 
-        .navbar-buttons {
-            display: flex;
-            gap: 10px;
+        .navbar-button {
+            background-color: #47a7fc; /* Новый цвет фона */
+            color: white; /* Цвет текста остаётся прежним */
+            padding: 10px 20px; /* Увеличены отступы */
+            font-size: 1.1em; /* Увеличен размер шрифта */
+            border-radius: 8px; /* Увеличен радиус закругления */
+            cursor: pointer; /* Курсор при наведении */
+            text-decoration: none; /* Убирает подчеркивание */
+            transition: background-color 0.3s, transform 0.2s; /* Добавлено новое свойство для эффекта */
+            margin-right: 22px;
         }
 
-        .navbar button {
-            background-color: #4facfe;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            font-size: 1em;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        .navbar button:hover {
+        .navbar-button:hover {
             background-color: #00c4cc;
         }
 
@@ -110,6 +106,7 @@
             font-size: 1.2em;
             color: #4facfe;
             margin: 10px 0;
+
         }
 
         /* Описание продукта */
@@ -144,12 +141,13 @@
     </style>
 </head>
 <body>
+
 <!-- Фиксированная навигационная панель -->
 <div class="navbar">
-    <h1>Shop</h1>
+    <h1>MShop</h1>
     <div class="navbar-buttons">
-        <button onclick="alert('Sign Up clicked!')">Sign Up</button>
-        <button onclick="alert('Sign In clicked!')">Sign In</button>
+        <a href="/register" class="navbar-button">Sign Up</a>
+        <a href="/signin" class="navbar-button">Sign In</a>
     </div>
 </div>
 

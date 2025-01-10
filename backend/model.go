@@ -7,3 +7,10 @@ type Products struct {
 	Picture_URL string `json:"picture"`
 	Price       string `json:"price"`
 }
+
+type User struct {
+	ID       int    `json:"id"`
+	Login    string `json:"Login"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}

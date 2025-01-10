@@ -10,14 +10,10 @@ import (
 
 func main() {
 	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	if err != nil { log.Fatal(err) }
 
 	DB, err := db.Connect(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatal(err)
-	}
+	if err != nil { log.Fatal(err) }
 
 	defer DB.Close()
 

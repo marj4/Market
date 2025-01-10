@@ -1,6 +1,7 @@
 package server
 
 import (
+	"Market/backend"
 	"Market/backend/db"
 	"database/sql"
 	"github.com/gin-gonic/gin"
@@ -19,9 +20,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 	}))
 
 	// Указываем путь к шаблонам
-	router.LoadHTMLGlob("frontend/index.html")
-
-	router.Static("/static/styles.css", "./frontend")
+	router.LoadHTMLGlob("frontend/pages/*")
 
 	router.GET("/ping", PingPage)
 
@@ -30,7 +29,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 
 		if err != nil {
 			c.JSON(500, gin.H{
-				"Error": "Can`t retrieve data from database",
+				"Error": "Can`t reсieve data from database",
 			})
 			return
 		}
@@ -40,5 +39,34 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		})
 	})
 
+	router.GET("register", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "register.html", nil)
+	})
+
+	router.POST("/register", func(c *gin.Context) {
+
+		login := c.DefaultPostForm("login", "")
+		password := c.DefaultPostForm("password", "")
+		email := c.DefaultPostForm("email", "")
+
+		user := backend.User{
+			Login:    login,
+			Password: password,
+			Email:    email,
+		}
+
+		if err := db.AddUser(DB, user); err != nil {
+			c.JSON(500, gin.H{
+				"Error": "Cant add user to db",
+			})
+			return
+		}
+	})
+
 	return router
+}
+
+// Continue from here
+func hash(password string) string {
+
 }
