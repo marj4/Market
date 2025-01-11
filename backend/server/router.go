@@ -3,9 +3,11 @@ package server
 import (
 	"Market/backend"
 	"Market/backend/db"
+	error2 "Market/error"
 	"database/sql"
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
+	"golang.org/x/crypto/bcrypt"
 	"net/http"
 )
 
@@ -67,6 +69,11 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 }
 
 // Continue from here
-func hash(password string) string {
+func hash(password string) ([]byte, string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+	if err != nil {
+		return nil, "", error2.Wrap("Cant hash password", err)
+	}
+	return hash, string(hash), nil
 
 }
