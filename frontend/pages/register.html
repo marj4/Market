@@ -10,7 +10,7 @@
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
-      background: linear-gradient(180deg, #4facfe, #007ffe);
+      background: linear-gradient(180deg, #000000, #000000);
       background-size: 200% 200%;
       animation: gradientAnimation 5s ease infinite;
       min-height: 100vh;
@@ -28,40 +28,42 @@
       }
     }
 
+    /* Фиксированная верхняя панель */
     .navbar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background-color: white;
+      background-color: rgba(41, 41, 41, 0.82);
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
+      z-index: 1000; /* Обеспечивает отображение поверх других элементов */
     }
 
     .navbar h1 {
       font-size: 1.8em;
-      color: #4facfe;
+      color: white; /* Изменён цвет на белый */
       margin: 0;
+      letter-spacing: 10px;
     }
 
     .navbar-button {
-      background-color: #47a7fc;
-      color: white;
-      padding: 10px 20px;
-      font-size: 1.1em;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background-color 0.3s, transform 0.2s;
-      margin-right: 22px;
+      background-color: #000000; /* Новый цвет фона */
+      color: white; /* Цвет текста остаётся прежним */
+      padding: 10px 20px; /* Увеличены отступы */
+      font-size: 1.1em; /* Увеличен размер шрифта */
+      border-radius: 8px; /* Увеличен радиус закругления */
+      cursor: pointer; /* Курсор при наведении */
+      text-decoration: none; /* Убирает подчеркивание */
+      transition: background-color 0.3s, transform 0.2s; /* Добавлено новое свойство для эффекта */
+      margin-right: 30px; /* Увеличено расстояние между кнопками */
     }
 
     .navbar-button:hover {
-      background-color: #00c4cc;
+      background-color: #a3a3a3;
     }
 
 
@@ -74,7 +76,7 @@
 
 
     .registration-form {
-      background: white;
+      background: #212121;
       border-radius: 10px;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       padding: 20px;
@@ -86,11 +88,13 @@
     }
 
     .registration-form h2 {
+      ont-family: 'Arial', sans-serif; /* Задает шрифт */
+      font-size: 24px;                 /* Размер текста */
+      font-weight: bold;
       margin-bottom: 20px;
       color: transparent;
-      background: linear-gradient(180deg, white, #4facfe);
+      background: linear-gradient(180deg, white, #ffffff);
       -webkit-background-clip: text;
-      animation: gradientAnimation 5s ease infinite;
       background-size: 200% 200%;
     }
 
@@ -115,19 +119,19 @@
     }
 
     .registration-form button {
-      background-color: #4facfe;
+      background-color: #000000;
       color: white;
       border: none;
       padding: 10px;
       font-size: 1em;
-      border-radius: 5px;
+      border-radius: 50px;
       cursor: pointer;
       transition: background-color 0.3s;
       width: 80%;
     }
 
     .registration-form button:hover {
-      background-color: #00c4cc;
+      background-color: #6f6f6f;
     }
   </style>
 </head>
@@ -136,7 +140,7 @@
 
 
 <div class="navbar">
-  <h1>MShop</h1>
+  <h1>Marj</h1>
   <div class="navbar-buttons">
     <a href="/register" class="navbar-button">Sign Up</a>
     <a href="/signin" class="navbar-button">Sign In</a>
@@ -145,7 +149,7 @@
 
 
 <div class="content">
-  <form class="registration-form" method="POST" action="/register">
+  <form class="registration-form" method="GET" action="/">
     <h2>Sign up</h2>
     <input type="text" name="login" placeholder="Login" required>
     <input type="email" name="email" placeholder="Email" required>

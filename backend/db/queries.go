@@ -33,7 +33,7 @@ func GetAllProduct(DB *sql.DB) ([]backend.Products, error) {
 }
 
 func AddUser(DB *sql.DB, user backend.User) error {
-	query := `INSERT INTO users (login, password,email) VALUES ($1,$2,$3)`
+	query := `INSERT INTO users (login,password,email) VALUES ($1,$2,$3)`
 	_, err := DB.Exec(query, user.Login, user.Password, user.Email)
 	if err != nil {
 		return error2.Wrap("Can`t add user to db", err)

@@ -8,6 +8,7 @@ import (
 	"github.com/gin-gonic/gin"
 	cors "github.com/rs/cors/wrapper/gin"
 	"golang.org/x/crypto/bcrypt"
+	"log"
 	"net/http"
 )
 
@@ -30,6 +31,8 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		data, err := db.GetAllProduct(DB)
 
 		if err != nil {
+			log.Fatal(err)
+
 			c.JSON(500, gin.H{
 				"Error": "Can`t reсieve data from database",
 			})
@@ -51,18 +54,30 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		password := c.DefaultPostForm("password", "")
 		email := c.DefaultPostForm("email", "")
 
+		_, hashPassword, err := hash(password)
+		if err != nil {
+			log.Fatal(err)
+
+			c.JSON(500, gin.H{
+				"Error": err.Error(),
+			})
+		}
+
 		user := backend.User{
 			Login:    login,
-			Password: password,
+			Password: hashPassword,
 			Email:    email,
 		}
 
 		if err := db.AddUser(DB, user); err != nil {
+			log.Fatal(err)
+
 			c.JSON(500, gin.H{
 				"Error": "Cant add user to db",
 			})
 			return
 		}
+
 	})
 
 	return router
@@ -75,5 +90,6 @@ func hash(password string) ([]byte, string, error) {
 		return nil, "", error2.Wrap("Cant hash password", err)
 	}
 	return hash, string(hash), nil
-
 }
+
+//func checkPassword()
