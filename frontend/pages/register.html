@@ -5,112 +5,78 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Registration</title>
   <style>
-
     body {
       margin: 0;
       padding: 0;
       font-family: Arial, sans-serif;
       background: linear-gradient(180deg, #000000, #000000);
-      background-size: 200% 200%;
-      animation: gradientAnimation 5s ease infinite;
       min-height: 100vh;
     }
 
-    @keyframes gradientAnimation {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
-    }
-
-    /* Фиксированная верхняя панель */
     .navbar {
       position: fixed;
       top: 0;
       left: 0;
       width: 100%;
-      background-color: rgba(41, 41, 41, 0.82);
+      background-color: rgb(41, 41, 41);
       display: flex;
       justify-content: space-between;
       align-items: center;
       padding: 10px 20px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      z-index: 1000; /* Обеспечивает отображение поверх других элементов */
+      z-index: 1000;
     }
 
-    /* Shop name*/
     .navbar-logo {
       text-decoration: none;
       font-size: 1.5em;
       font-weight: bold;
-      color: white; /* Изменён цвет на белый */
+      color: white;
       margin: 0;
       letter-spacing: 10px;
     }
 
     .navbar-button {
-      background-color: #000000; /* Новый цвет фона */
-      color: white; /* Цвет текста остаётся прежним */
-      padding: 10px 20px; /* Увеличены отступы */
-      font-size: 1.1em; /* Увеличен размер шрифта */
-      border-radius: 8px; /* Увеличен радиус закругления */
-      cursor: pointer; /* Курсор при наведении */
-      text-decoration: none; /* Убирает подчеркивание */
-      transition: background-color 0.3s, transform 0.2s; /* Добавлено новое свойство для эффекта */
-      margin-right: 30px; /* Увеличено расстояние между кнопками */
+      background-color: #000000;
+      color: white;
+      padding: 10px 20px;
+      font-size: 1.1em;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background-color 0.3s, transform 0.2s;
+      margin-right: 30px;
     }
 
     .navbar-button:hover {
       background-color: #a3a3a3;
     }
 
-
     .content {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      min-height: calc(100vh - 60px);
+      padding-top: 60px;
     }
-
 
     .registration-form {
       background: #212121;
       border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       padding: 20px;
       width: 400px;
       text-align: center;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
     }
 
+
     .registration-form h2 {
-      ont-family: 'Arial', sans-serif; /* Задает шрифт */
-      font-size: 24px;                 /* Размер текста */
+      font-family: 'Arial', sans-serif;
+      font-size: 24px;
       font-weight: bold;
       margin-bottom: 20px;
       color: transparent;
       background: linear-gradient(180deg, white, #ffffff);
       -webkit-background-clip: text;
       background-size: 200% 200%;
-    }
-
-    @keyframes gradientAnimation {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
     }
 
     .registration-form input {
@@ -123,44 +89,138 @@
 
     .registration-form button {
       background-color: #000000;
-      color: white;
+      color: #ffffff;
       border: none;
       padding: 10px;
       font-size: 1em;
-      border-radius: 50px;
+      border-radius: 55px;
       cursor: pointer;
       transition: background-color 0.3s;
       width: 80%;
     }
 
     .registration-form button:hover {
-      background-color: #6f6f6f;
+      background-color: rgba(152, 152, 152, 0.82);
+    }
+
+    .error {
+      color: red;
+      font-size: 0.9em;
+      margin-top: -5px;
+      margin-bottom: 10px;
+      text-align: left;
+      display: none;
+    }
+
+    .success {
+      border-color: green;
+    }
+
+    .error-border {
+      border-color: red !important;
     }
   </style>
 </head>
 <body>
-
-
-
 <div class="navbar">
   <a href="/" class="navbar-logo">Marj</a>
   <div class="navbar-buttons">
     <a href="/register" class="navbar-button">Sign Up</a>
-    <a href="/signin" class="navbar-button">Sign In</a>
+    <a href="/login" class="navbar-button">Sign In</a>
   </div>
 </div>
 
-
 <div class="content">
-  <form class="registration-form" method="POST" action="/register">
+  <form class="registration-form" id="registrationForm" method="POST" action="/register">
     <h2>Sign up</h2>
-    <input type="text" name="login" placeholder="Login" required>
-    <input type="email" name="email" placeholder="Email" required>
-    <input type="password" name="password" placeholder="Password" required>
+    <div>
+      <input type="text" id="login" name="login" placeholder="Login" required>
+      <div id="loginError" class="error">Invalid login</div>
+    </div>
+    <div>
+      <input type="email" id="email" name="email" placeholder="Email" required>
+      <div id="emailError" class="error">Invalid email</div>
+    </div>
+    <div>
+      <input type="password" id="password" name="password" placeholder="Password" required>
+      <div id="passwordError" class="error">Password must be at least 8 characters</div>
+    </div>
     <button type="submit">Sign up</button>
   </form>
-
 </div>
+
+<script>
+  const loginInput = document.getElementById('login');
+  const emailInput = document.getElementById('email');
+  const passwordInput = document.getElementById('password');
+
+  loginInput.addEventListener('input', () => {
+    const errorDiv = document.getElementById('loginError');
+    const value = loginInput.value;
+
+    if (value.length < 3 || value.length > 16 || !/^[a-zA-Z0-9._-]+$/.test(value)) {
+      errorDiv.textContent = 'Login must be 3-16 characters and contain only letters, numbers, ".", "_", or "-".';
+      errorDiv.style.display = 'block';
+      loginInput.classList.add('error-border');
+    } else {
+      errorDiv.style.display = 'none';
+      loginInput.classList.remove('error-border');
+    }
+  });
+
+  emailInput.addEventListener('input', () => {
+    const errorDiv = document.getElementById('emailError');
+    const value = emailInput.value;
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      errorDiv.textContent = 'Invalid email format.';
+      errorDiv.style.display = 'block';
+      emailInput.classList.add('error-border');
+    } else {
+      errorDiv.style.display = 'none';
+      emailInput.classList.remove('error-border');
+    }
+  });
+
+  passwordInput.addEventListener('input', () => {
+    const errorDiv = document.getElementById('passwordError');
+    const value = passwordInput.value;
+
+    if (
+            value.length < 8 ||
+            !/[A-Z]/.test(value) ||    // At least one uppercase letter
+            !/[a-z]/.test(value) ||    // At least one lowercase letter
+            !/[0-9]/.test(value) ||    // At least one number
+            !/[^a-zA-Z0-9]/.test(value) // At least one special character
+    ) {
+      errorDiv.textContent =
+              'Password must be at least 8 characters, include uppercase, lowercase, a number, and a special character.';
+      errorDiv.style.display = 'block';
+      passwordInput.classList.add('error-border');
+    } else {
+      errorDiv.style.display = 'none';
+      passwordInput.classList.remove('error-border');
+    }
+  });
+
+  document.getElementById('registrationForm').addEventListener('submit', function (event) {
+    const inputs = document.querySelectorAll('input');
+    let hasError = false;
+
+    inputs.forEach(input => {
+      const errorDiv = input.nextElementSibling;
+      if (!input.validity.valid || errorDiv.style.display === 'block') {
+        hasError = true;
+        input.classList.add('error-border');
+      }
+    });
+
+    if (hasError) {
+      event.preventDefault();
+      alert('Please fix the errors before submitting the form.');
+    }
+  });
+</script>
 
 </body>
 </html>
