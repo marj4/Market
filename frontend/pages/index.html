@@ -29,11 +29,12 @@
             z-index: 1000; /* Обеспечивает отображение поверх других элементов */
         }
 
-        .navbar h1 {
-            font-size: 1.8em;
-            color: white; /* Изменён цвет на белый */
-            margin: 0;
-            letter-spacing: 10px;
+        .navbar-logo {
+            text-decoration: none; /* Убирает подчеркивание */
+            color: white; /* Цвет текста */
+            font-size: 1.5em; /* Размер шрифта */
+            font-weight: bold; /* Жирность текста */
+            letter-spacing: 10px; /* Межбуквенное расстояние */
         }
 
         .navbar-button {
@@ -144,7 +145,7 @@
 
 <!-- Фиксированная навигационная панель -->
 <div class="navbar">
-    <h1>Marj</h1>
+    <a href="/" class="navbar-logo">Marj</a>
     <div class="navbar-buttons">
         <a href="/register" class="navbar-button">Sign Up</a>
         <a href="/signin" class="navbar-button">Sign In</a>

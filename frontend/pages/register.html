@@ -43,8 +43,11 @@
       z-index: 1000; /* Обеспечивает отображение поверх других элементов */
     }
 
-    .navbar h1 {
-      font-size: 1.8em;
+    /* Shop name*/
+    .navbar-logo {
+      text-decoration: none;
+      font-size: 1.5em;
+      font-weight: bold;
       color: white; /* Изменён цвет на белый */
       margin: 0;
       letter-spacing: 10px;
@@ -140,7 +143,7 @@
 
 
 <div class="navbar">
-  <h1>Marj</h1>
+  <a href="/" class="navbar-logo">Marj</a>
   <div class="navbar-buttons">
     <a href="/register" class="navbar-button">Sign Up</a>
     <a href="/signin" class="navbar-button">Sign In</a>
@@ -149,7 +152,7 @@
 
 
 <div class="content">
-  <form class="registration-form" method="GET" action="/">
+  <form class="registration-form" method="POST" action="/register">
     <h2>Sign up</h2>
     <input type="text" name="login" placeholder="Login" required>
     <input type="email" name="email" placeholder="Email" required>

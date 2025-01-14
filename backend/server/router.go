@@ -29,19 +29,13 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 
 	router.GET("/", func(c *gin.Context) {
 		data, err := db.GetAllProduct(DB)
-
 		if err != nil {
 			log.Fatal(err)
-
-			c.JSON(500, gin.H{
-				"Error": "Can`t reсieve data from database",
-			})
+			c.JSON(500, gin.H{"Error": "Can`t reсieve data from database"})
 			return
 		}
 
-		c.HTML(http.StatusOK, "index.html", gin.H{
-			"Products": data,
-		})
+		c.HTML(http.StatusOK, "index.html", gin.H{"Products": data})
 	})
 
 	router.GET("register", func(c *gin.Context) {
@@ -50,9 +44,9 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 
 	router.POST("/register", func(c *gin.Context) {
 
-		login := c.DefaultPostForm("login", "")
-		password := c.DefaultPostForm("password", "")
-		email := c.DefaultPostForm("email", "")
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+		email := c.PostForm("email")
 
 		_, hashPassword, err := hash(password)
 		if err != nil {
@@ -77,6 +71,8 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			})
 			return
 		}
+
+		c.Redirect(http.StatusSeeOther, "/")
 
 	})
 
