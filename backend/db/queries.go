@@ -6,6 +6,10 @@ import (
 	"database/sql"
 )
 
+type Password struct {
+	Password string `json:"password"`
+}
+
 func GetAllProduct(DB *sql.DB) ([]backend.Products, error) {
 	query := `SELECT name,description,picture,price from products`
 
@@ -38,6 +42,18 @@ func AddUser(DB *sql.DB, user backend.User) error {
 	if err != nil {
 		return error2.Wrap("Can`t add user to db", err)
 	}
-
 	return nil
+}
+
+func GetUser(DB *sql.DB, login string) (string, error) {
+	query := `SELECT password FROM users WHERE login=$1`
+
+	row := DB.QueryRow(query, login)
+
+	var password Password
+	if err := row.Scan(&password.Password); err != nil {
+		return "", error2.Wrap("Can`t get user password from db", err)
+	}
+	return password.Password, nil
+
 }

@@ -67,22 +67,29 @@
             margin-top: 20px;
         }
 
+        /* Изображение продукта */
+        .card img {
+            width: 100%; /* Изображение заполняет ширину карточки */
+            height: 250px; /* Фиксированная высота для квадрата */
+            object-fit: cover; /* Масштабирует изображение и обрезает, чтобы оно заполнило квадрат */
+            border-radius: 10px; /* Закруглённые углы */
+            margin-bottom: 15px;
+        }
+
         /* Карточка продукта */
         .card {
             background-color: rgb(33, 33, 33);
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 250px;
+            width: 250px; /* Фиксированная ширина карточки */
             padding: 20px;
             text-align: center;
+            display: flex;
+            flex-direction: column; /* Расположение элементов вертикально */
+            justify-content: space-between; /* Разделяет элементы равномерно */
             transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        .card img {
-            max-width: 100%;
-            height: auto;
-            display: block;
-        }
 
         .card:hover {
             transform: translateY(-5px);
@@ -148,7 +155,7 @@
     <a href="/" class="navbar-logo">Marj</a>
     <div class="navbar-buttons">
         <a href="/register" class="navbar-button">Sign Up</a>
-        <a href="/signin" class="navbar-button">Sign In</a>
+        <a href="/login" class="navbar-button">Sign In</a>
     </div>
 </div>
 

@@ -38,10 +38,9 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		c.HTML(http.StatusOK, "index.html", gin.H{"Products": data})
 	})
 
-	router.GET("register", func(c *gin.Context) {
+	router.GET("/register", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "register.html", nil)
 	})
-
 	router.POST("/register", func(c *gin.Context) {
 
 		login := c.PostForm("login")
@@ -71,6 +70,42 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			})
 			return
 		}
+
+		c.Redirect(http.StatusSeeOther, "/")
+
+	})
+
+	router.GET("/login", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "login.html", nil)
+	})
+	router.POST("/login", func(c *gin.Context) {
+		login := c.PostForm("login")
+		password := c.PostForm("password")
+
+		//Get hash-password from DB for check
+		UserPassword, err := db.GetUser(DB, login)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": "Error for database"})
+			return
+		}
+
+		//Hash password user
+		hash, _, err := hash(password)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": "Error for hash..//"})
+			return
+		}
+
+		//Check password user with password from DB
+		if err := bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
+			log.Fatal(err)
+			c.JSON(401, gin.H{"Error": "Invalid username or password"})
+			return
+		}
+
+		//token,err := GenerateToken()
 
 		c.Redirect(http.StatusSeeOther, "/")
 
