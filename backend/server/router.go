@@ -3,13 +3,19 @@ package server
 import (
 	"Market/backend"
 	"Market/backend/db"
+	"Market/config"
 	error2 "Market/error"
 	"database/sql"
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/nanorand/nanorand"
 	cors "github.com/rs/cors/wrapper/gin"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"net/smtp"
+	"regexp"
 )
 
 func LoadRouter(DB *sql.DB) *gin.Engine {
@@ -38,22 +44,46 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		c.HTML(http.StatusOK, "index.html", gin.H{"Products": data})
 	})
 
-	router.GET("/register", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "register.html", nil)
-	})
+	router.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "register.html", nil) })
 	router.POST("/register", func(c *gin.Context) {
 
+		//Получаю данные с формы
 		login := c.PostForm("login")
 		password := c.PostForm("password")
 		email := c.PostForm("email")
 
+		//Дополнительная проверка данных на стороне сервера
+		if err := validateUserData(login, email, password); err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": err.Error()})
+			return
+		}
+
+		//Получаю логин и почту из БД, для того чтобы проверить, существует ли пользователь с введеными данными
+		loginsEmail, err := db.GetAllLoginAndEmail(DB)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": "Can`t receive users from db"})
+			return
+		}
+
+		//Проверяем
+		for _, log := range loginsEmail {
+			if log.Login == login && log.Email == email {
+				c.HTML(http.StatusOK, "register.html", gin.H{"Error": "User with this data already exists"})
+			} else if log.Login == login {
+				c.HTML(http.StatusOK, "register.html", gin.H{"Error": "User with this login already exists"})
+			} else if log.Email == email {
+				c.HTML(http.StatusOK, "register.html", gin.H{"Error": "User with this email already exists"})
+			}
+		}
+
+		//Хеширую введённый пароль
 		_, hashPassword, err := hash(password)
 		if err != nil {
 			log.Fatal(err)
-
-			c.JSON(500, gin.H{
-				"Error": err.Error(),
-			})
+			c.JSON(500, gin.H{"Error": err.Error()})
+			return
 		}
 
 		user := backend.User{
@@ -62,6 +92,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			Email:    email,
 		}
 
+		//Добавляю пользователя в БД
 		if err := db.AddUser(DB, user); err != nil {
 			log.Fatal(err)
 
@@ -71,6 +102,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			return
 		}
 
+		//Перекидываю пользователя на главную страницу
 		c.Redirect(http.StatusSeeOther, "/")
 
 	})
@@ -82,15 +114,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 		login := c.PostForm("login")
 		password := c.PostForm("password")
 
-		//Get hash-password from DB for check
-		UserPassword, err := db.GetUser(DB, login)
-		if err != nil {
-			log.Fatal(err)
-			c.JSON(500, gin.H{"Error": "Error for database"})
-			return
-		}
-
-		//Hash password user
+		//Hash password user from sing in
 		hash, _, err := hash(password)
 		if err != nil {
 			log.Fatal(err)
@@ -98,8 +122,16 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			return
 		}
 
+		//Get hash-password from DB for check
+		PasswordUser, err := db.GetUser(DB, login)
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": "Error for database"})
+			return
+		}
+
 		//Check password user with password from DB
-		if err := bcrypt.CompareHashAndPassword(hash, []byte(password)); err != nil {
+		if err := bcrypt.CompareHashAndPassword([]byte(PasswordUser), hash); err != nil {
 			log.Fatal(err)
 			c.JSON(401, gin.H{"Error": "Invalid username or password"})
 			return
@@ -123,4 +155,66 @@ func hash(password string) ([]byte, string, error) {
 	return hash, string(hash), nil
 }
 
-//func checkPassword()
+func GenerateCodeForEmail() string {
+	code, _ := nanorand.Gen(6)
+	return code
+}
+
+func SendCodeToEmail(email string, code string) error {
+	//Загружаю конфиг, из которого буду брать почту, от которой будут рассылаться коды для двухфакторки
+	cfg, err := config.LoadConfig()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//Готовлю письмо
+	subject := "Email Verification Code"
+	body := fmt.Sprintf("Your verification code is: %s", GenerateCodeForEmail())
+	message := []byte("Subject: " + subject + "\r\n\r\n" + body)
+
+	//Параметры SMTP-сервера
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+
+	//Ввожу данные для авторизации на почте, от которой будут рассылаться коды
+	auth := smtp.PlainAuth("", cfg.Email, cfg.APP_PASSWORD, smtpHost)
+
+	//Отправляю код
+	if err := smtp.SendMail(smtpHost+":"+smtpPort, auth, cfg.Email, []string{email}, message); err != nil {
+		log.Fatal(err)
+
+	}
+
+	return nil
+
+}
+
+func validateUserData(login, email, password string) error {
+	// Проверка логина
+	if len(login) < 3 || len(login) > 16 {
+		return errors.New("login must be between 3 and 16 characters")
+	}
+	loginRegex := `^[a-zA-Z0-9._-]+$`
+	if !regexp.MustCompile(loginRegex).MatchString(login) {
+		return errors.New("login can only contain letters, numbers, '.', '_', and '-'")
+	}
+
+	// Проверка пароля
+	if len(password) < 8 {
+		return errors.New("password must be at least 8 characters long")
+	}
+	if !regexp.MustCompile(`[A-Z]`).MatchString(password) {
+		return errors.New("password must include at least one uppercase letter")
+	}
+	if !regexp.MustCompile(`[a-z]`).MatchString(password) {
+		return errors.New("password must include at least one lowercase letter")
+	}
+	if !regexp.MustCompile(`[0-9]`).MatchString(password) {
+		return errors.New("password must include at least one number")
+	}
+	if !regexp.MustCompile(`[^a-zA-Z0-9]`).MatchString(password) {
+		return errors.New("password must include at least one special character")
+	}
+
+	return nil
+}
