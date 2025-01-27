@@ -5,20 +5,28 @@ import (
 	"Market/backend/db"
 	"Market/config"
 	error2 "Market/error"
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/nanorand/nanorand"
+	"github.com/redis/go-redis/v9"
 	cors "github.com/rs/cors/wrapper/gin"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"net/smtp"
 	"regexp"
+	"time"
 )
 
-func LoadRouter(DB *sql.DB) *gin.Engine {
+var ctx = context.Background()
+var ctx2 = context.Background()
+var key string = "userData"
+var key2 string = "code"
+
+func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 	router := gin.Default()
 
 	router.Use(cors.New(cors.Options{
@@ -45,21 +53,21 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 	})
 
 	router.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "register.html", nil) })
-	router.POST("/register", func(c *gin.Context) {
 
-		//Получаю данные с формы
+	router.POST("/register", func(c *gin.Context) {
+		//Get data from the form
 		login := c.PostForm("login")
 		password := c.PostForm("password")
 		email := c.PostForm("email")
 
-		//Дополнительная проверка данных на стороне сервера
+		//Additional data validation on the server side
 		if err := validateUserData(login, email, password); err != nil {
 			log.Fatal(err)
 			c.JSON(500, gin.H{"Error": err.Error()})
 			return
 		}
 
-		//Получаю логин и почту из БД, для того чтобы проверить, существует ли пользователь с введеными данными
+		//Get login and mail from the database to check if the user with the entered data exists.
 		loginsEmail, err := db.GetAllLoginAndEmail(DB)
 		if err != nil {
 			log.Fatal(err)
@@ -67,7 +75,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			return
 		}
 
-		//Проверяем
+		//Check
 		for _, log := range loginsEmail {
 			if log.Login == login && log.Email == email {
 				c.HTML(http.StatusOK, "register.html", gin.H{"Error": "User with this data already exists"})
@@ -78,7 +86,7 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			}
 		}
 
-		//Хеширую введённый пароль
+		//Hash the entered password
 		_, hashPassword, err := hash(password)
 		if err != nil {
 			log.Fatal(err)
@@ -86,23 +94,76 @@ func LoadRouter(DB *sql.DB) *gin.Engine {
 			return
 		}
 
-		user := backend.User{
-			Login:    login,
-			Password: hashPassword,
-			Email:    email,
-		}
+		var ctx = context.Background()
+		key := "userData"
 
-		//Добавляю пользователя в БД
-		if err := db.AddUser(DB, user); err != nil {
+		//Generated code for send to email
+		codeGenerate := GenerateCodeForEmail()
+		fmt.Printf("Generated code: %s", codeGenerate)
+
+		//Save data on Redis-server
+		if err := DB2.HSet(ctx, key, "login", login, "password", hashPassword, "email", email, "code", codeGenerate).Err(); err != nil {
 			log.Fatal(err)
+			return
+		}
+		fmt.Printf("Saved code: %s", codeGenerate)
 
-			c.JSON(500, gin.H{
-				"Error": "Cant add user to db",
-			})
+		//Set the TTL
+		if err := DB2.Expire(ctx, key, 3*time.Minute).Err(); err != nil {
+			log.Fatal(err)
 			return
 		}
 
-		//Перекидываю пользователя на главную страницу
+		//Sent code to email
+		if err := SendCodeToEmail(email, codeGenerate); err != nil {
+			log.Fatal(err)
+			return
+		}
+		fmt.Printf("Sended code: %s", codeGenerate)
+
+		//Forwards the user to the home page
+		c.Redirect(http.StatusSeeOther, "/2au")
+	})
+
+	router.GET("/2au", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "2au.html", nil)
+	})
+
+	router.POST("/auth2au", func(c *gin.Context) {
+		//Receive data user from redis-server
+		userData, err := DB2.HGetAll(ctx, key).Result()
+		if err != nil {
+			log.Fatal(err)
+			c.JSON(500, gin.H{"Error": err.Error()})
+			return
+		}
+
+		//Save code from redis-server in variable
+		code1 := userData["code"]
+
+		fmt.Println(userData["email"])
+		fmt.Printf("Code from redis-server: %s", code1)
+
+		//Receive code from form "code"
+		codeFromForm := c.PostForm("code")
+		fmt.Printf("Code from form: %s", codeFromForm)
+
+		if codeFromForm != code1 {
+			c.JSON(500, gin.H{"Error": "Incorrect code"})
+		}
+
+		user := backend.User{
+			Login:    userData["login"],
+			Email:    userData["email"],
+			Password: userData["password"],
+		}
+
+		if err := db.AddUser(DB, user); err != nil {
+			log.Fatal(err)
+			return
+		}
+
+		//Forward the user to home page
 		c.Redirect(http.StatusSeeOther, "/")
 
 	})
@@ -169,7 +230,7 @@ func SendCodeToEmail(email string, code string) error {
 
 	//Готовлю письмо
 	subject := "Email Verification Code"
-	body := fmt.Sprintf("Your verification code is: %s", GenerateCodeForEmail())
+	body := fmt.Sprintf("Your verification code is: %s", code)
 	message := []byte("Subject: " + subject + "\r\n\r\n" + body)
 
 	//Параметры SMTP-сервера
@@ -177,16 +238,13 @@ func SendCodeToEmail(email string, code string) error {
 	smtpPort := "587"
 
 	//Ввожу данные для авторизации на почте, от которой будут рассылаться коды
-	auth := smtp.PlainAuth("", cfg.Email, cfg.APP_PASSWORD, smtpHost)
+	auth := smtp.PlainAuth("", cfg.Email, cfg.App_Password, smtpHost)
 
 	//Отправляю код
 	if err := smtp.SendMail(smtpHost+":"+smtpPort, auth, cfg.Email, []string{email}, message); err != nil {
 		log.Fatal(err)
-
 	}
-
 	return nil
-
 }
 
 func validateUserData(login, email, password string) error {
