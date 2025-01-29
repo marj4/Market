@@ -98,15 +98,13 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 		key := "userData"
 
 		//Generated code for send to email
-		codeGenerate := GenerateCodeForEmail()
-		fmt.Printf("Generated code: %s", codeGenerate)
+		codeGenerate, err := GenerateCodeForEmail()
 
 		//Save data on Redis-server
 		if err := DB2.HSet(ctx, key, "login", login, "password", hashPassword, "email", email, "code", codeGenerate).Err(); err != nil {
 			log.Fatal(err)
 			return
 		}
-		fmt.Printf("Saved code: %s", codeGenerate)
 
 		//Set the TTL
 		if err := DB2.Expire(ctx, key, 3*time.Minute).Err(); err != nil {
@@ -114,14 +112,13 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 			return
 		}
 
-		//Sent code to email
+		//Send code to email
 		if err := SendCodeToEmail(email, codeGenerate); err != nil {
 			log.Fatal(err)
 			return
 		}
-		fmt.Printf("Sended code: %s", codeGenerate)
 
-		//Forwards the user to the home page
+		//Forwards the user to the auth-page
 		c.Redirect(http.StatusSeeOther, "/2au")
 	})
 
@@ -216,9 +213,12 @@ func hash(password string) ([]byte, string, error) {
 	return hash, string(hash), nil
 }
 
-func GenerateCodeForEmail() string {
-	code, _ := nanorand.Gen(6)
-	return code
+func GenerateCodeForEmail() (string, error) {
+	code, err := nanorand.Gen(6)
+	if err != nil {
+		return "", error2.Wrap("Cant generate code", err)
+	}
+	return code, nil
 }
 
 func SendCodeToEmail(email string, code string) error {

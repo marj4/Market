@@ -37,7 +37,7 @@ func GetAllProduct(DB *sql.DB) ([]backend.Products, error) {
 }
 
 func GetAllLoginAndEmail(DB *sql.DB) ([]backend.User, error) {
-	query := `SELECT login from users`
+	query := `SELECT login,email from users`
 
 	rows, err := DB.Query(query)
 	if err != nil {
@@ -46,19 +46,19 @@ func GetAllLoginAndEmail(DB *sql.DB) ([]backend.User, error) {
 
 	defer rows.Close()
 
-	var logins []backend.User
+	var loginsEmail []backend.User
 
 	for rows.Next() {
 		var user backend.User
 
-		if err := rows.Scan(&user.Login); err != nil {
+		if err := rows.Scan(&user.Login, &user.Email); err != nil {
 			return nil, error2.Wrap("Can`t scan products from db", err)
 		}
 
-		logins = append(logins, user)
+		loginsEmail = append(loginsEmail, user)
 	}
 
-	return logins, nil
+	return loginsEmail, nil
 
 }
 
@@ -71,18 +71,16 @@ func AddUser(DB *sql.DB, user backend.User) error {
 	return nil
 }
 
-//func GetUser(DB *sql.DB, login string) (string, error) {
-//	query := `SELECT password FROM users WHERE login=$1`
-//
-//	row := DB.QueryRow(query, login)
-//
-//	var password Password
-//	if err := row.Scan(&password.Password); err != nil {
-//		return "", error2.Wrap("Can`t get user password from db", err)
-//	}
-//
-//	if
-//	return password.Password, nil
-//
-//}
-//
+func GetUser(DB *sql.DB, login string) (string, error) {
+	query := `SELECT password FROM users WHERE login=$1`
+
+	row := DB.QueryRow(query, login)
+
+	var password Password
+
+	if err := row.Scan(&password.Password); err != nil {
+		return "", error2.Wrap("Can`t get user password from db", err)
+	}
+	return password.Password, nil
+
+}

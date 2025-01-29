@@ -21,7 +21,7 @@ func Connect(DatabaseURL string) (*sql.DB, error) {
 
 }
 
-func Connect2(ResidServerURL string) *redis.Client {
-	rdb := redis.NewClient((&redis.Options{Addr: ResidServerURL, DB: 0}))
+func Connect2(RedisServerURL string) *redis.Client {
+	rdb := redis.NewClient((&redis.Options{Addr: RedisServerURL, DB: 0}))
 	return rdb
 }
