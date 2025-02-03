@@ -5,7 +5,6 @@ import (
 )
 
 func PingPage(c *gin.Context) {
-
 	c.JSON(200, gin.H{
 		"Status": "true",
 	})

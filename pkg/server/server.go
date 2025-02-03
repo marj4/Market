@@ -10,11 +10,11 @@ type Server struct {
 	Router *gin.Engine
 }
 
+// Start server
 func StartServer(DB *sql.DB, DB2 *redis.Client) *Server {
 	router := LoadRouter(DB, DB2)
 	server := &Server{
 		Router: router,
 	}
-
 	return server
 }

@@ -1,4 +1,4 @@
-package backend
+package pkg
 
 type Products struct {
 	ID          int    `json:"id"`

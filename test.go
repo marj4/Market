@@ -1,29 +1,18 @@
 package main
 
 import (
-	"Market/backend/db"
-	"Market/config"
 	"fmt"
-	"log"
+	"github.com/nanorand/nanorand"
 )
 
 func main() {
-	cfg, err := config.LoadConfig()
-	if err != nil {
-		log.Fatal(err)
-	}
+	code1 := GenerateCodeForEmail()
+	code2 := code1
+	fmt.Println(code1)
+	fmt.Println(code2)
+}
 
-	DB, err := db.Connect(cfg.DatabaseURL)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	defer DB.Close()
-
-	password, err := db.GetUser(DB, "alina77")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(password)
+func GenerateCodeForEmail() string {
+	code, _ := nanorand.Gen(6)
+	return code
 }

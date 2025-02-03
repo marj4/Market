@@ -1,10 +1,10 @@
 package server
 
 import (
-	"Market/backend"
-	"Market/backend/db"
 	"Market/config"
 	error2 "Market/error"
+	"Market/pkg"
+	"Market/pkg/db"
 	"context"
 	"database/sql"
 	"errors"
@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/smtp"
 	"regexp"
+	"strings"
 	"time"
 )
 
@@ -53,7 +54,6 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 	})
 
 	router.GET("/register", func(c *gin.Context) { c.HTML(http.StatusOK, "register.html", nil) })
-
 	router.POST("/register", func(c *gin.Context) {
 		//Get data from the form
 		login := c.PostForm("login")
@@ -61,7 +61,7 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 		email := c.PostForm("email")
 
 		//Additional data validation on the server side
-		if err := validateUserData(login, email, password); err != nil {
+		if err := ValidateUserData(login, email, password); err != nil {
 			log.Fatal(err)
 			c.JSON(500, gin.H{"Error": err.Error()})
 			return
@@ -87,7 +87,7 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 		}
 
 		//Hash the entered password
-		_, hashPassword, err := hash(password)
+		_, hashPassword, err := Hash(password)
 		if err != nil {
 			log.Fatal(err)
 			c.JSON(500, gin.H{"Error": err.Error()})
@@ -125,7 +125,6 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 	router.GET("/2au", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "2au.html", nil)
 	})
-
 	router.POST("/auth2au", func(c *gin.Context) {
 		//Receive data user from redis-server
 		userData, err := DB2.HGetAll(ctx, key).Result()
@@ -149,7 +148,7 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 			c.JSON(500, gin.H{"Error": "Incorrect code"})
 		}
 
-		user := backend.User{
+		user := pkg.User{
 			Login:    userData["login"],
 			Email:    userData["email"],
 			Password: userData["password"],
@@ -165,15 +164,13 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 
 	})
 
-	router.GET("/login", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "login.html", nil)
-	})
+	router.GET("/login", func(c *gin.Context) { c.HTML(http.StatusOK, "login.html", nil) })
 	router.POST("/login", func(c *gin.Context) {
 		login := c.PostForm("login")
 		password := c.PostForm("password")
 
 		//Hash password user from sing in
-		hash, _, err := hash(password)
+		hash, _, err := Hash(password)
 		if err != nil {
 			log.Fatal(err)
 			c.JSON(500, gin.H{"Error": "Error for hash..//"})
@@ -195,8 +192,6 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 			return
 		}
 
-		//token,err := GenerateToken()
-
 		c.Redirect(http.StatusSeeOther, "/")
 
 	})
@@ -204,8 +199,16 @@ func LoadRouter(DB *sql.DB, DB2 *redis.Client) *gin.Engine {
 	return router
 }
 
-// Continue from here
-func hash(password string) ([]byte, string, error) {
+// Ok
+func Hash(password string) ([]byte, string, error) {
+	//Added space cleanup
+	password = strings.TrimSpace(password)
+
+	//Added check on the empty password
+	if password == "" {
+		return nil, "", errors.New("password is empty")
+	}
+
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
 	if err != nil {
 		return nil, "", error2.Wrap("Cant hash password", err)
@@ -213,6 +216,7 @@ func hash(password string) ([]byte, string, error) {
 	return hash, string(hash), nil
 }
 
+// Ok
 func GenerateCodeForEmail() (string, error) {
 	code, err := nanorand.Gen(6)
 	if err != nil {
@@ -221,7 +225,11 @@ func GenerateCodeForEmail() (string, error) {
 	return code, nil
 }
 
-func SendCodeToEmail(email string, code string) error {
+func SendCodeToEmail(email, code string) error {
+	//Added check on the empty email and on the length code
+	if len(email) == 0 && len(code) != 6 {
+		return errors.New("email is empty and len code should be 6")
+	}
 	//Загружаю конфиг, из которого буду брать почту, от которой будут рассылаться коды для двухфакторки
 	cfg, err := config.LoadConfig()
 	if err != nil {
@@ -247,7 +255,7 @@ func SendCodeToEmail(email string, code string) error {
 	return nil
 }
 
-func validateUserData(login, email, password string) error {
+func ValidateUserData(login, email, password string) error {
 	// Проверка логина
 	if len(login) < 3 || len(login) > 16 {
 		return errors.New("login must be between 3 and 16 characters")
